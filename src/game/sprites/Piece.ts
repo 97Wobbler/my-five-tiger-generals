@@ -49,6 +49,8 @@ export class Piece extends GameObjects.Container {
 
         // 능력치 표시
         this.displayStats();
+
+        this.setScale(0.5); // TODO: 임의값 조정
     }
 
     private displayStats() {
@@ -61,6 +63,7 @@ export class Piece extends GameObjects.Container {
         this.statTexts = [];
 
         const centerRadius = 85; // 능력치가 표시될 테두리 반지름
+        const innerRadius = 55; // 별(체력)이 표시될 안쪽 반지름
         const iconSize = 6; // 아이콘(원)의 크기
         const iconSpacing = 18; // 아이콘 간 간격
 
@@ -74,13 +77,13 @@ export class Piece extends GameObjects.Container {
 
         // 능력치별 위치와 각도 정의 (시계 방향)
         const statPositions = [
-            { stat: "star", angle: -90 }, // 위쪽 (0도)
-            { stat: "sun", angle: 0 }, // 우측 (90도)
-            { stat: "move", angle: 90 }, // 아래쪽 (180도)
-            { stat: "moon", angle: 180 }, // 좌측 (270도)
+            { stat: "star", angle: -90, radius: innerRadius }, // 별 - 위쪽 안쪽
+            { stat: "sun", angle: -45, radius: centerRadius }, // 해 - 우상단 대각선
+            { stat: "moon", angle: -135, radius: centerRadius }, // 달 - 좌상단 대각선
+            { stat: "move", angle: 90, radius: centerRadius }, // 발 - 아래쪽
         ];
 
-        statPositions.forEach(({ stat, angle }) => {
+        statPositions.forEach(({ stat, angle, radius }) => {
             const statKey = stat as keyof PieceStats;
             const value = this.stats[statKey];
             if (value <= 0) return;
@@ -97,10 +100,9 @@ export class Piece extends GameObjects.Container {
                 const offset = startOffset + i * iconSpacing;
 
                 // 아이콘의 실제 위치 계산 (원형 테두리를 따라)
-                const iconRadius = centerRadius;
-                const iconAngle = radians + offset / iconRadius;
-                const iconX = Math.cos(iconAngle) * iconRadius;
-                const iconY = Math.sin(iconAngle) * iconRadius;
+                const iconAngle = radians + offset / radius;
+                const iconX = Math.cos(iconAngle) * radius;
+                const iconY = Math.sin(iconAngle) * radius;
 
                 // 작은 원으로 아이콘 그리기
                 this.statGraphics?.fillStyle(color, 1);
