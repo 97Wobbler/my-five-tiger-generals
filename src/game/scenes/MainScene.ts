@@ -31,11 +31,10 @@ export class MainScene extends Scene {
         // BoardRenderer 인스턴스 생성 및 보드판 렌더링
         this.boardRenderer = new BoardRenderer(this, this.boardConfig);
         this.boardRenderer.renderBoard();
+        this.events.on("tileClicked", this.moveTestPiece, this);
 
         // 말 기물 생성 및 Scene에 추가
-        Test.testPiece = new Piece(this, 100, 100, { sun: 1, moon: 1, move: 1, star: 1 });
-
-        this.events.on("tileClicked", this.moveTestPiece, this);
+        Test.testPiece = new Piece(this, 600, 300, { sun: 2, moon: 5, move: 5, star: 3 });
     }
 
     moveTestPiece(tile: TriangleTile) {
