@@ -15,11 +15,12 @@ export class Piece extends GameObjects.Container {
     private shadow: GameObjects.GameObject | null = null;
 
     private character: GameObjects.GameObject | null = null;
-    private characterOutline: GameObjects.GameObject | null = null;
+    private characterOutlines: GameObjects.GameObject[] = [];
 
     // 능력치 표시를 위한 그래픽 객체들
     private statGraphics: GameObjects.Graphics | null = null;
     private statTexts: GameObjects.Text[] = [];
+    private statIcons: GameObjects.GameObject[] = []; // 아이콘 이미지들을 저장할 배열
 
     constructor(scene: Scene, x: number, y: number, stats: PieceStats, isGeneral: boolean = true) {
         super(scene, x, y);
@@ -27,30 +28,35 @@ export class Piece extends GameObjects.Container {
         this.stats = stats;
         this.isGeneral = isGeneral;
 
-        this.createPiece();
+        const profileId = Math.floor(Math.random() * 7) + 1;
+
+        this.createPiece(profileId);
         this.scene.add.existing(this);
     }
 
-    private createPiece() {
+    private createPiece(profileId: number = 1) {
         // 말의 시각적 표현 생성 (원형으로 표시)
-        this.shadow = this.scene.add.circle(0, 2, 102, 0x000000).setAlpha(0.2);
-        this.piece = this.scene.add.circle(0, 0, 100, 0xfafafa).setStrokeStyle(1, 0x000000, 0.4);
-        this.character = this.scene.add.circle(0, 0, 65, 0xcccccc).setStrokeStyle(1, 0x000000, 0.4);
-        this.characterOutline = this.scene.add.circle(0, 0, 70, 0xffffff).setStrokeStyle(1, 0x000000, 0.5);
+        this.shadow = this.scene.add.circle(1, 2, 102, 0x000000).setAlpha(0.2);
+        this.piece = this.scene.add.circle(0, 0, 100, 0xfafafa).setStrokeStyle(1, 0x000000, 0.3);
+
+        // 프로필 이미지 사용 (1-7번 중 선택)
+        const profileKey = `profile-${Math.min(Math.max(profileId, 1), 7)}`;
+        this.character = this.scene.add.image(0, 0, profileKey);
+
+        this.characterOutlines.push(this.scene.add.circle(0, 0, 65, undefined).setStrokeStyle(1, 0x000000, 0.5));
+        this.characterOutlines.push(this.scene.add.circle(0, 0, 70, undefined).setStrokeStyle(1, 0x000000, 0.5));
 
         // 능력치 표시를 위한 그래픽 객체 생성
         this.statGraphics = this.scene.add.graphics();
 
         this.add(this.shadow);
         this.add(this.piece);
-        this.add(this.characterOutline);
         this.add(this.character);
+        this.characterOutlines.forEach((outline) => this.add(outline));
         this.add(this.statGraphics);
 
         // 능력치 표시
         this.displayStats();
-
-        this.setScale(0.5); // TODO: 임의값 조정
     }
 
     private displayStats() {
@@ -58,21 +64,23 @@ export class Piece extends GameObjects.Container {
 
         this.statGraphics.clear();
 
-        // 기존 텍스트 제거
+        // 기존 텍스트와 아이콘 제거
         this.statTexts.forEach((text) => text.destroy());
         this.statTexts = [];
+        this.statIcons.forEach((icon) => icon.destroy());
+        this.statIcons = [];
 
         const centerRadius = 85; // 능력치가 표시될 테두리 반지름
         const innerRadius = 55; // 별(체력)이 표시될 안쪽 반지름
-        const iconSize = 6; // 아이콘(원)의 크기
+        const iconSize = 20; // 아이콘 크기
         const iconSpacing = 18; // 아이콘 간 간격
 
-        // 각 능력치별 색상 정의
-        const statColors: Record<keyof PieceStats, number> = {
-            star: 0xffd700, // 별 - 금색
-            moon: 0x87ceeb, // 달 - 하늘색
-            sun: 0xffa500, // 해 - 주황색
-            move: 0x32cd32, // 발 - 초록색
+        // 로드된 이미지 키 사용
+        const statIcons: Record<keyof PieceStats, string> = {
+            star: "star-icon",
+            moon: "moon-icon",
+            sun: "sun-icon",
+            move: "move-icon",
         };
 
         // 능력치별 위치와 각도 정의 (시계 방향)
@@ -88,7 +96,7 @@ export class Piece extends GameObjects.Container {
             const value = this.stats[statKey];
             if (value <= 0) return;
 
-            const color = statColors[statKey];
+            const iconKey = statIcons[statKey];
             const radians = (angle * Math.PI) / 180;
 
             // 아이콘들을 배치할 총 너비 계산
@@ -104,13 +112,23 @@ export class Piece extends GameObjects.Container {
                 const iconX = Math.cos(iconAngle) * radius;
                 const iconY = Math.sin(iconAngle) * radius;
 
-                // 작은 원으로 아이콘 그리기
-                this.statGraphics?.fillStyle(color, 1);
-                this.statGraphics?.fillCircle(iconX, iconY, iconSize);
+                try {
+                    // 로드된 이미지 키로 아이콘 추가
+                    const icon = this.scene.add.image(iconX, iconY, iconKey);
+                    icon.setScale(iconSize / 32); // 32x32 이미지 기준으로 스케일 조정
+                    icon.setOrigin(0.5);
 
-                // 테두리 추가 (선명하게 보이도록)
-                this.statGraphics?.lineStyle(1, 0x000000, 0.8);
-                this.statGraphics?.strokeCircle(iconX, iconY, iconSize);
+                    this.statIcons.push(icon);
+                    this.add(icon);
+                } catch (error) {
+                    console.warn(`아이콘 로드 실패: ${iconKey}`, error);
+                    // 이미지 로드 실패 시 작은 원으로 대체
+                    const fallbackIcon = this.scene.add.circle(iconX, iconY, iconSize / 2, 0xcccccc);
+                    fallbackIcon.setStrokeStyle(1, 0x000000, 0.8);
+
+                    this.statIcons.push(fallbackIcon);
+                    this.add(fallbackIcon);
+                }
             }
         });
 
