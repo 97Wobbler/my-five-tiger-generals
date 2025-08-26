@@ -1,24 +1,20 @@
-import { BoardRenderer } from "./BoardRenderer";
+import { Board } from "./Board";
 
-export abstract class TriangleTile {
-    public x: number;
-    public y: number;
-
-    protected scene: Phaser.Scene;
+export abstract class TriangleTile extends Phaser.GameObjects.Container {
     protected verts: number[];
     protected index: number;
-    protected scale: number;
+    protected scaleValue: number;
 
     protected tri: Phaser.GameObjects.Triangle | null = null;
     protected text: Phaser.GameObjects.Text | null = null;
 
     constructor(scene: Phaser.Scene, x: number, y: number, verts: number[], index: number, scale: number) {
-        this.scene = scene;
-        this.x = x;
-        this.y = y;
+        super(scene, x, y);
+        scene.add.existing(this);
+
         this.verts = verts;
         this.index = index;
-        this.scale = scale;
+        this.scaleValue = scale;
 
         this.draw();
         this.markIndex();
@@ -26,33 +22,35 @@ export abstract class TriangleTile {
     }
 
     protected draw() {
-        this.tri = this.scene.add.triangle(this.x, this.y, ...this.verts, BoardRenderer.triangle.color, BoardRenderer.triangle.alpha);
-        this.tri.setScale(this.scale);
-        this.tri.setStrokeStyle(...Object.values(BoardRenderer.triangle.strokeStyle));
+        // 로컬 좌표(0,0)를 기준으로 그린 뒤, 컨테이너 위치로 이동
+        const tri = new Phaser.GameObjects.Triangle(this.scene, 0, 0, ...this.verts, Board.triangle.color, Board.triangle.alpha);
+        tri.setScale(this.scaleValue);
+        tri.setStrokeStyle(...Object.values(Board.triangle.strokeStyle));
+        this.tri = tri;
         this.applyTransformations();
+        this.add(tri);
     }
 
     protected abstract applyTransformations(): void;
 
     protected markIndex() {
-        this.text = this.scene.add.text(this.x, this.y, `${this.index}`, { fontSize: "16px", color: "#000000" }).setOrigin(0.5, 0.5).setAlpha(0.2);
+        const label = new Phaser.GameObjects.Text(this.scene, 0, 0, `${this.index}`, { fontSize: "16px", color: "#000000" }).setOrigin(0.5, 0.5).setAlpha(0.2);
+        this.text = label;
+        this.add(label);
     }
 
     protected setupInteractivity() {
         if (!this.tri) return;
 
-        // 커스텀 히트 영역 설정
         const hit = new Phaser.Geom.Triangle(...this.verts);
 
         const triangle = this.tri;
         triangle.setInteractive(hit, Phaser.Geom.Triangle.Contains);
 
-        // input이 존재하는지 확인 후 cursor 설정
         if (triangle.input) {
             triangle.input.cursor = "pointer";
         }
 
-        // 이벤트 핸들러 설정
         triangle.on("pointerover", () => this.onHoverEnter());
         triangle.on("pointerout", () => this.onHoverLeave());
         triangle.on("pointerdown", () => this.onClick());
@@ -63,12 +61,10 @@ export abstract class TriangleTile {
     protected onHoverLeave() {}
 
     protected onClick() {
-        this.scene.events.emit("tileClicked", this);
-    }
-
-    destroy() {
-        this.tri?.destroy();
-        this.text?.destroy();
+        const mat = this.getWorldTransformMatrix();
+        const world = new Phaser.Math.Vector2();
+        mat.transformPoint(0, 0, world);
+        this.scene.events.emit("tileClicked", { x: world.x, y: world.y });
     }
 }
 
@@ -84,36 +80,40 @@ export class UpAndDownTriangleTile extends TriangleTile {
 
 export class RightTriangleTile extends TriangleTile {
     constructor(scene: Phaser.Scene, x: number, y: number, index: number, scale: number) {
-        const verts = [0, 0, 2 * BoardRenderer.triangle.height, 0, BoardRenderer.triangle.height, -BoardRenderer.triangle.width / 2];
+        const verts = [0, 0, 2 * Board.triangle.height, 0, Board.triangle.height, -Board.triangle.width / 2];
         super(scene, x, y, verts, index, scale);
     }
 
     protected applyTransformations(): void {
         if (this.tri) {
-            this.tri.setDisplayOrigin(BoardRenderer.triangle.height, 0);
+            this.tri.setDisplayOrigin(Board.triangle.height, 0);
             this.tri.setAngle(90);
         }
     }
 
     protected markIndex(): void {
-        this.text = this.scene.add.text(this.x, this.y, `${this.index}`, { fontSize: "16px", color: "#000000" }).setOrigin(-1, 0.5).setAlpha(0.2);
+        const label = new Phaser.GameObjects.Text(this.scene, 0, 0, `${this.index}`, { fontSize: "16px", color: "#000000" }).setOrigin(-1, 0.5).setAlpha(0.2);
+        this.text = label;
+        this.add(label);
     }
 }
 
 export class LeftTriangleTile extends TriangleTile {
     constructor(scene: Phaser.Scene, x: number, y: number, index: number, scale: number) {
-        const verts = [0, 0, 2 * BoardRenderer.triangle.height, 0, BoardRenderer.triangle.height, -BoardRenderer.triangle.width / 2];
+        const verts = [0, 0, 2 * Board.triangle.height, 0, Board.triangle.height, -Board.triangle.width / 2];
         super(scene, x, y, verts, index, scale);
     }
 
     protected applyTransformations(): void {
         if (this.tri) {
-            this.tri.setDisplayOrigin(BoardRenderer.triangle.height, 0);
+            this.tri.setDisplayOrigin(Board.triangle.height, 0);
             this.tri.setAngle(270);
         }
     }
 
     protected markIndex(): void {
-        this.text = this.scene.add.text(this.x, this.y, `${this.index}`, { fontSize: "16px", color: "#000000" }).setOrigin(2, 0.5).setAlpha(0.2);
+        const label = new Phaser.GameObjects.Text(this.scene, 0, 0, `${this.index}`, { fontSize: "16px", color: "#000000" }).setOrigin(2, 0.5).setAlpha(0.2);
+        this.text = label;
+        this.add(label);
     }
 }

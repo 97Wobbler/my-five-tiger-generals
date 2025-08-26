@@ -19,7 +19,6 @@ export class Piece extends GameObjects.Container {
 
     // 능력치 표시를 위한 그래픽 객체들
     private statGraphics: GameObjects.Graphics | null = null;
-    private statTexts: GameObjects.Text[] = [];
     private statIcons: GameObjects.GameObject[] = []; // 아이콘 이미지들을 저장할 배열
 
     constructor(scene: Scene, x: number, y: number, stats: PieceStats, isGeneral: boolean = true) {
@@ -31,6 +30,8 @@ export class Piece extends GameObjects.Container {
         const profileId = Math.floor(Math.random() * 7) + 1;
 
         this.createPiece(profileId);
+        this.setScale(0.5);
+
         this.scene.add.existing(this);
     }
 
@@ -64,9 +65,6 @@ export class Piece extends GameObjects.Container {
 
         this.statGraphics.clear();
 
-        // 기존 텍스트와 아이콘 제거
-        this.statTexts.forEach((text) => text.destroy());
-        this.statTexts = [];
         this.statIcons.forEach((icon) => icon.destroy());
         this.statIcons = [];
 
@@ -112,27 +110,16 @@ export class Piece extends GameObjects.Container {
                 const iconX = Math.cos(iconAngle) * radius;
                 const iconY = Math.sin(iconAngle) * radius;
 
-                try {
-                    // 로드된 이미지 키로 아이콘 추가
-                    const icon = this.scene.add.image(iconX, iconY, iconKey);
-                    icon.setScale(iconSize / 32); // 32x32 이미지 기준으로 스케일 조정
-                    icon.setOrigin(0.5);
+                // 로드된 이미지 키로 아이콘 추가
+                const icon = this.scene.add.image(iconX, iconY, iconKey);
+                icon.setScale(iconSize / 32); // 32x32 이미지 기준으로 스케일 조정
+                icon.setOrigin(0.5);
+                icon.setAngle(angle + 90);
 
-                    this.statIcons.push(icon);
-                    this.add(icon);
-                } catch (error) {
-                    console.warn(`아이콘 로드 실패: ${iconKey}`, error);
-                    // 이미지 로드 실패 시 작은 원으로 대체
-                    const fallbackIcon = this.scene.add.circle(iconX, iconY, iconSize / 2, 0xcccccc);
-                    fallbackIcon.setStrokeStyle(1, 0x000000, 0.8);
-
-                    this.statIcons.push(fallbackIcon);
-                    this.add(fallbackIcon);
-                }
+                this.statIcons.push(icon);
+                this.add(icon);
             }
         });
-
-        console.log(`말 생성: 해${this.stats.sun} 달${this.stats.moon} 발${this.stats.move} 별${this.stats.star}`);
     }
 
     // 능력치 업데이트 메서드

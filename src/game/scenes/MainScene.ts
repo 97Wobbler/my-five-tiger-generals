@@ -1,20 +1,13 @@
 import { Scene } from "phaser";
-import { BoardRenderer } from "../rendering/BoardRenderer";
-import type { BoardConfig } from "../rendering/BoardRenderer";
+import { Board } from "../rendering/Board";
 import { Piece } from "../sprites/Piece";
-import type { TriangleTile } from "../rendering/TriangleTile";
 
 const Test = {
     testPiece: null as Piece | null,
 };
 
 export class MainScene extends Scene {
-    private boardConfig: BoardConfig = {
-        startPosX: 100,
-        startPosY: 100,
-    };
-
-    private boardRenderer?: BoardRenderer;
+    private board?: Board;
 
     constructor() {
         super({ key: "MainScene" });
@@ -44,17 +37,17 @@ export class MainScene extends Scene {
     create() {
         this.cameras.main.setBackgroundColor("#f8f8f8");
 
-        // BoardRenderer 인스턴스 생성 및 보드판 렌더링
-        this.boardRenderer = new BoardRenderer(this, this.boardConfig);
-        this.boardRenderer.renderBoard();
+        // 보드 컨테이너 생성(컨테이너 내부 로컬좌표로 중앙 기준 배치)
+        this.board = new Board(this);
+        this.board.renderBoard();
         this.events.on("tileClicked", this.moveTestPiece, this);
 
         // 말 기물 생성 및 Scene에 추가
         Test.testPiece = new Piece(this, 600, 300, { sun: 2, moon: 5, move: 5, star: 3 });
     }
 
-    moveTestPiece(tile: TriangleTile) {
-        Test.testPiece?.move(tile.x, tile.y);
+    moveTestPiece(pos: { x: number; y: number }) {
+        Test.testPiece?.move(pos.x, pos.y);
     }
 
     update() {
