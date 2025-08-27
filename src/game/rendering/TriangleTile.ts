@@ -17,7 +17,7 @@ export abstract class TriangleTile extends Phaser.GameObjects.Container {
         this.scaleValue = scale;
 
         this.draw();
-        this.markIndex();
+        // this.markIndex();
         this.setupInteractivity();
     }
 
