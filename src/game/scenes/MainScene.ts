@@ -1,6 +1,10 @@
 import { Scene } from "phaser";
 import { Board } from "../rendering/Board";
 import { Piece } from "../sprites/Piece";
+import { buildBoardGraph } from "../systems/BoardGraph";
+import type { BoardGraph } from "../systems/BoardGraph";
+import { BoardGraphDebugger } from "../debug/BoardGraphDebugger";
+import { TileManager } from "../systems/TileManager";
 
 const Test = {
     testPiece: null as Piece | null,
@@ -8,6 +12,9 @@ const Test = {
 
 export class MainScene extends Scene {
     private board?: Board;
+    private boardGraph?: BoardGraph;
+    private tileManager?: TileManager;
+    private boardDebugger?: BoardGraphDebugger;
 
     constructor() {
         super({ key: "MainScene" });
@@ -40,17 +47,28 @@ export class MainScene extends Scene {
         // 보드 컨테이너 생성(컨테이너 내부 로컬좌표로 중앙 기준 배치)
         this.board = new Board(this);
         this.board.renderBoard();
-        this.events.on("tileClicked", this.moveTestPiece, this);
+        this.events.on("tileClicked", this.onTileClicked, this);
 
-        // 말 기물 생성 및 Scene에 추가
+        // 보드 그래프 초기화
+        this.boardGraph = buildBoardGraph();
+
+        // 타일 매니저 초기화
+        this.tileManager = new TileManager(this.boardGraph);
+
+        // 보드 그래프 디버거 초기화
+        // this.boardDebugger = new BoardGraphDebugger(this, this.board, this.boardGraph);
+
+        // 테스트 말 기물 생성 및 Scene에 추가
         Test.testPiece = new Piece(this, 600, 300, { sun: 2, moon: 5, move: 5, star: 3 });
-    }
-
-    moveTestPiece(pos: { x: number; y: number }) {
-        Test.testPiece?.move(pos.x, pos.y);
     }
 
     update() {
         // 게임 로직 업데이트
+    }
+
+    private onTileClicked(data: { tileId: number; worldX: number; worldY: number }) {
+        // 디버거를 사용하여 타일 연결 정보 시각화
+        this.boardDebugger?.visualizeTileConnections(data.tileId);
+        Test.testPiece?.move(data.worldX, data.worldY);
     }
 }
