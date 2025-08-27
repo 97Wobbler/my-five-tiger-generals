@@ -64,7 +64,11 @@ export abstract class TriangleTile extends Phaser.GameObjects.Container {
         const mat = this.getWorldTransformMatrix();
         const world = new Phaser.Math.Vector2();
         mat.transformPoint(0, 0, world);
-        this.scene.events.emit("tileClicked", { x: world.x, y: world.y });
+        this.scene.events.emit("tileClicked", {
+            tileId: this.index,
+            worldX: world.x,
+            worldY: world.y,
+        });
     }
 }
 

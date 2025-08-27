@@ -1,9 +1,8 @@
 // Logical board graph for movement and combat direction rules
+import { isValidPosition, findById } from "../utils/gridUtils";
 
 export type Orientation = "Up" | "Down" | "Left" | "Right";
-
 export type Direction = "Up" | "Down" | "UpLeft" | "UpRight" | "DownLeft" | "DownRight";
-
 export type AttackAttribute = "sun" | "moon" | "neutral";
 
 export interface Tile {
@@ -161,7 +160,7 @@ function calculateVertexEdges(tile: Tile, rows: number, cols: number, rcToId: (r
     const vertexOffsets = tile.orient === "Up" ? vertexOffsetsUp : tile.orient === "Down" ? vertexOffsetsDown : [];
     if (vertexOffsets.length === 0) return [];
 
-    const inBounds = (r: number, c: number) => r >= 0 && r < rows && c >= 0 && c < cols;
+    const inBounds = (r: number, c: number) => isValidPosition(r, c, rows, cols);
 
     const vertexNeighbors: number[] = [];
     for (const { dr, dc } of vertexOffsets) {
@@ -226,7 +225,7 @@ export function buildBoardGraph(rows = 6, cols = 5): BoardGraph {
         idToRC.set(mapping.id, { row: primaryCoord.row, col: primaryCoord.col });
     }
 
-    const inBounds = (r: number, c: number) => r >= 0 && r < rows && c >= 0 && c < cols;
+    const inBounds = (r: number, c: number) => isValidPosition(r, c, rows, cols);
 
     // Side-contact neighbor offsets
     const sideOffsetsUp = [
@@ -315,7 +314,7 @@ export function getNeighbors(g: BoardGraph, id: number, opt: NeighborOptions = {
     if (!opt.allowVertexJump) return base;
 
     // Calculate vertex edges on-demand
-    const tile = g.tiles.find((t) => t.id === id);
+    const tile = findById(g.tiles, id);
     if (!tile) return base;
 
     const extra = calculateVertexEdges(tile, g.rows, g.cols, g.rcToId);
@@ -328,7 +327,7 @@ export function getNeighborsWithDir(g: BoardGraph, id: number, opt: NeighborOpti
     if (!opt.allowVertexJump) return base;
 
     // Calculate vertex edges on-demand and convert to NeighborWithDir format
-    const tile = g.tiles.find((t) => t.id === id);
+    const tile = findById(g.tiles, id);
     if (!tile) return base;
 
     const extra = calculateVertexEdges(tile, g.rows, g.cols, g.rcToId);
