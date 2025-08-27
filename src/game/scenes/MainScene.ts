@@ -1,10 +1,10 @@
 import { Scene } from "phaser";
 import { Board } from "../rendering/Board";
 import { Piece } from "../sprites/Piece";
-import { buildBoardGraph } from "../systems/BoardGraph";
-import type { BoardGraph } from "../systems/BoardGraph";
+// import { buildBoardGraph } from "../systems/BoardGraph";
+// import type { BoardGraph } from "../systems/BoardGraph";
 import { BoardGraphDebugger } from "../debug/BoardGraphDebugger";
-import { TileManager } from "../systems/TileManager";
+// import { TileManager } from "../systems/TileManager";
 
 const Test = {
     testPiece: null as Piece | null,
@@ -12,8 +12,8 @@ const Test = {
 
 export class MainScene extends Scene {
     private board?: Board;
-    private boardGraph?: BoardGraph;
-    private tileManager?: TileManager;
+    // private boardGraph?: BoardGraph;
+    // private tileManager?: TileManager;
     private boardDebugger?: BoardGraphDebugger;
 
     constructor() {
@@ -50,10 +50,10 @@ export class MainScene extends Scene {
         this.events.on("tileClicked", this.onTileClicked, this);
 
         // 보드 그래프 초기화
-        this.boardGraph = buildBoardGraph();
+        // this.boardGraph = buildBoardGraph();
 
         // 타일 매니저 초기화
-        this.tileManager = new TileManager(this.boardGraph);
+        // this.tileManager = new TileManager(this.boardGraph);
 
         // 보드 그래프 디버거 초기화
         // this.boardDebugger = new BoardGraphDebugger(this, this.board, this.boardGraph);
