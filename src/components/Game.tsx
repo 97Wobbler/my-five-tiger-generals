@@ -31,8 +31,11 @@ const Game: React.FC = () => {
             id='game-container'
             style={{
                 width: "100%",
-                height: "100vh",
+                height: "800px",
                 backgroundColor: "#ffffff",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
             }}
         />
     );

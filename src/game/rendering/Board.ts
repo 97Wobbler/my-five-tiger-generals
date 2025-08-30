@@ -58,12 +58,8 @@ export class Board extends Phaser.GameObjects.Container {
         this.renderLeftAndRightTiles();
         this.renderSunMoonIcons();
 
-        // 실제 렌더된 자식들의 경계를 기준으로 컨테이너를 카메라 중앙에 정확히 정렬
-        const cam = this.scene.cameras.main;
-        const bounds = this.getBounds();
-        const dx = cam.centerX - (bounds.x + bounds.width / 2);
-        const dy = cam.centerY - (bounds.y + bounds.height / 2);
-        this.setPosition(this.x + dx, this.y + dy);
+        // Phaser의 자동 중앙 정렬을 활용하므로 추가 위치 조정 불필요
+        // this.setPosition()는 생성자에서 이미 설정됨
     }
 
     private renderUpAndDownTiles() {

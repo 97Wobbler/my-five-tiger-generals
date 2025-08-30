@@ -1,24 +1,336 @@
 .App {
-  width: 100vw;
-  height: 100vh;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
 body {
-  margin: 0;
-  padding: 0;
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+    padding: 0;
+    font-family:
+        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-#game-container {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* 플레이어 상태 바 */
+.player-status-bar {
+    height: 80px;
+    background-color: #f0f0f0;
+    border-bottom: 1px solid #ddd;
+    padding: 15px 20px;
+    flex-shrink: 0;
+    z-index: 1000;
+    position: relative;
+}
+
+.enemy-bar {
+    border-bottom: 2px solid #ff6b6b;
+    background-color: #ffe6e6;
+}
+
+.my-bar {
+    border-top: 2px solid #4ecdc4;
+    background-color: #e6f7f5;
+}
+
+/* 적 상태 바 */
+.enemy-status {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+}
+
+.enemy-basic-info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.enemy-label {
+    font-weight: bold;
+    color: #d63031;
+    font-size: 16px;
+}
+
+.enemy-knock {
+    background-color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #ff6b6b;
+    color: #d63031;
+    font-weight: 500;
+}
+
+.enemy-surrendered {
+    background-color: #ff6b6b;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+/* 내 상태 바 */
+.my-status {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+}
+
+.my-basic-info {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+}
+
+.my-label {
+    font-weight: bold;
+    color: #00b894;
+    font-size: 16px;
+}
+
+.my-knock {
+    background-color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: 1px solid #4ecdc4;
+    color: #00b894;
+    font-weight: 500;
+}
+
+.my-surrendered {
+    background-color: #4ecdc4;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+.my-resources {
+    display: flex;
+    gap: 30px;
+    font-size: 14px;
+}
+
+.troop-resources,
+.tactic-resources {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.resource-label {
+    font-weight: bold;
+    color: #2d3436;
+    min-width: 80px;
+}
+
+.reserve-troops,
+.graveyard-troops,
+.supply-queue,
+.hand-cards,
+.deck-cards,
+.discard-cards,
+.equipped-tactics,
+.installables {
+    background-color: white;
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    color: #2d3436;
+}
+
+.status-effects {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    font-size: 14px;
+}
+
+.effects-label {
+    font-weight: bold;
+    color: #2d3436;
+}
+
+.status-effect {
+    background-color: #ffeaa7;
+    color: #d63031;
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 1px solid #fdcb6e;
+    font-size: 12px;
+}
+
+/* 애니메이션 */
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+/* 메인 게임 영역 */
+.main-game-area {
+    flex: 1;
+    display: flex;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 좌측 UI */
+.left-ui {
+    width: 250px;
+    background-color: #f8f9fa;
+    border-right: 2px solid #dee2e6;
+    padding: 20px;
+    z-index: 100;
+    position: relative;
+    overflow-y: auto;
+}
+
+.left-panel h3 {
+    margin: 0 0 15px 0;
+    color: #495057;
+    font-size: 18px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 10px;
+}
+
+.left-panel p {
+    color: #6c757d;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* 게임 보드 */
+.game-board {
+    flex: 1;
+    position: relative;
+    z-index: 1;
+    height: 800px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+/* 우측 UI */
+.right-ui {
+    width: 280px;
+    background-color: #f8f9fa;
+    border-left: 2px solid #dee2e6;
+    padding: 20px;
+    z-index: 100;
+    position: relative;
+    overflow-y: auto;
+}
+
+.right-panel h3 {
+    margin: 0 0 20px 0;
+    color: #495057;
+    font-size: 18px;
+    border-bottom: 2px solid #dee2e6;
+    padding-bottom: 10px;
+}
+
+.right-panel h4 {
+    margin: 20px 0 15px 0;
+    color: #495057;
+    font-size: 16px;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 8px;
+}
+
+.game-overview {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.info-section {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background-color: white;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.info-label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 14px;
+}
+
+.info-value {
+    font-weight: bold;
+    font-size: 16px;
+    padding: 4px 12px;
+    border-radius: 6px;
+}
+
+.turn-value {
+    background-color: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #bbdefb;
+}
+
+.player-value {
+    background-color: #f3e5f5;
+    color: #7b1fa2;
+    border: 1px solid #e1bee7;
+}
+
+.actions-value {
+    background-color: #e8f5e8;
+    color: #388e3c;
+    border: 1px solid #c8e6c9;
+}
+
+.game-status {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.status-label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 14px;
+}
+
+.status-value {
+    font-weight: bold;
+    color: #6c757d;
+    font-size: 14px;
 }
